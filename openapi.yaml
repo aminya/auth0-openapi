@@ -19,42 +19,85 @@ paths:
         - Social Provider Authentication
         - Database/AD/LDAP (Passive) Authentication
         - SAML/Windows Azure AD (Passive) Authentication
-      summary: Authenticate a user with a social provider, Database/AD/LDAP (Passive), or SAML/Windows Azure AD (Passive)
-      description: Use this endpoint to authenticate a user with a social provider, for browser based (passive) authentication, or for passive authentication with a SAML Provider (or Windows Azure AD and the rest). It will return a 302 redirect to the provider specified in connection or to the Auth0 Login Page that will show the Login Widget where the user can log in with email and password.
+        - Authorization Code Flow
+        - Authorization Code Grant (PKCE) Flow
+        - Implicit Flow
+      summary: Authenticate a user with a social provider, Database/AD/LDAP (Passive), SAML/Windows Azure AD (Passive), mobile app, or web app
+      description: Use this endpoint to authenticate a user with a social provider, for browser based (passive) authentication, passive authentication with a SAML Provider (or Windows Azure AD and the rest), mobile app using Authorization Code Grant (PKCE) Flow, or web app using Implicit Flow. It will return a 302 redirect to the provider specified in connection or to the Auth0 Login Page that will show the Login Widget where the user can log in with email and password.
       parameters:
+        - name: audience
+          in: query
+          description: The unique identifier of the target API you want to access
+          schema:
+            type: string
+        - name: scope
+          in: query
+          description: The scopes which you want to request authorization for. These must be separated by a space. You can request any of the standard OpenID Connect (OIDC) scopes about users, such as profile and email, custom claims that must conform to a namespaced format, or any scopes supported by the target API (for example, read:contacts). Include offline_access to get a Refresh Token.
+          schema:
+            type: string
         - name: response_type
           in: query
+          description: Indicates to Auth0 which OAuth 2.0 flow you want to perform. Use code for Authorization Code Grant Flow, token for Implicit Flow, or id_token token for both an ID Token and an Access Token.
           required: true
-          description: Use code for server side flows, token for application side flows.
           schema:
             type: string
+            enum: [code, token, id_token token]
         - name: client_id
           in: query
+          description: Your application's ID.
           required: true
-          description: The client_id of your application.
-          schema:
-            type: string
-        - name: connection
-          in: query
-          required: false
-          description: The name of a social identity provider, the connection configured to your application, or the SAML Provider (or Windows Azure AD and the rest). If null, it will redirect to the Auth0 Login Page and show the Login Widget.
           schema:
             type: string
         - name: redirect_uri
           in: query
-          required: true
           description: The URL to which Auth0 will redirect the browser after authorization has been granted by the user.
           schema:
             type: string
+            format: uri
         - name: state
           in: query
-          required: false
           description: An opaque value the applications adds to the initial request that the authorization server includes when redirecting the back to the application. This value must be used by the application to prevent CSRF attacks.
+          schema:
+            type: string
+        - name: nonce
+          in: query
+          description: A string value which will be included in the ID Token response from Auth0, used to prevent token replay attacks. It is required for response_type=id_token token.
+          schema:
+            type: string
+        - name: code_challenge_method
+          in: query
+          description: Method used to generate the challenge. The PKCE spec defines two methods, S256 and plain, however, Auth0 supports only S256 since the latter is discouraged.
+          schema:
+            type: string
+            enum: [S256]
+        - name: code_challenge
+          in: query
+          description: Generated challenge from the code_verifier.
+          schema:
+            type: string
+        - name: connection
+          in: query
+          description: The name of the connection configured to your application.
+          schema:
+            type: string
+        - name: prompt
+          in: query
+          description: To initiate a silent authentication request, use prompt=none.
+          schema:
+            type: string
+        - name: organization
+          in: query
+          description: ID of the organization to use when authenticating a user. When not provided, if your application is configured to Display Organization Prompt, the user will be able to enter the organization name when authenticating.
+          schema:
+            type: string
+        - name: invitation
+          in: query
+          description: Ticket ID of the organization invitation. When inviting a member to an Organization, your application should handle invitation acceptance by forwarding the invitation and organization key-value pairs when the user accepts the invitation.
           schema:
             type: string
       responses:
         "302":
-          description: Redirect to the provider's sign in page or to the Auth0 Login Page.
+          description: Redirect to the social provider specified in connection
   /v2/logout:
     get:
       tags:
