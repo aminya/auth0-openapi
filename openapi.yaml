@@ -471,46 +471,287 @@ paths:
       responses:
         "200":
           description: Successful response
-
+  /mfa/associate:
+    post:
+      tags:
+        - MFA
+      summary: Associates or adds a new authenticator for multi-factor authentication (MFA).
+      description: |
+        If the user has active authenticators, an Access Token with the enroll scope and the audience set to https://{yourDomain}/mfa/ is required to use this endpoint.
+        If the user has no active authenticators, you can use the mfa_token from the mfa_required error in place of an Access Token for this request.
+        After an authenticator is added, it must be verified. To verify the authenticator, use the response values from the /mfa/associate request in place of the values returned from the /mfa/challenge endpoint and continue with the verification flow.
+        A recovery_codes field is included in the response the first time an authenticator is added. You can use recovery_codes to pass multi-factor authentication as shown on Verify with recovery code above.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: string
+                  description: Your application's Client ID.
+                client_assertion:
+                  type: string
+                  description: A JWT containing a signed assertion with your application credentials. Required when Private Key JWT is your application authentication method.
+                client_assertion_type:
+                  type: string
+                  description: The value is urn:ietf:params:oauth:client-assertion-type:jwt-bearer. Required when Private Key JWT is the application authentication method.
+                client_secret:
+                  type: string
+                  description: Your application's Client Secret. Required when the Token Endpoint Authentication Method field in your Application Settings is Post or Basic.
+                authenticator_types:
+                  type: array
+                  items:
+                    type: string
+                  description: The type of authenticators supported by the client. Value is an array with values "otp" or "oob".
+                oob_channels:
+                  type: array
+                  items:
+                    type: string
+                  description: The type of OOB channels supported by the client. An array with values "auth0", "sms", "voice". Required if authenticator_types include oob.
+                phone_number:
+                  type: string
+                  description: The phone number to use for SMS or Voice. Required if oob_channels includes sms or voice.
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recovery_codes:
+                    type: array
+                    items:
+                      type: string
+  /mfa/authenticators:
+    get:
+      tags:
+        - MFA
+      summary: Returns a list of authenticators associated with your application.
+      description: |
+        To access this endpoint you must set an Access Token at the Authorization header, with the following claims:
+        scope: read:authenticators
+        audience: https://{yourDomain}/mfa/
+      parameters:
+        - name: ACCESS_TOKEN
+          in: header
+          required: true
+          schema:
+            type: string
+          description: The Access Token obtained during login.
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    authenticator_type:
+                      type: string
+                    oob_channels:
+                      type: string
+                      nullable: true
+                    name:
+                      type: string
+                      nullable: true
+                    active:
+                      type: boolean
+  /mfa/authenticators/{AUTHENTICATOR_ID}:
+    delete:
+      tags:
+        - MFA
+      summary: Deletes an associated authenticator using its ID.
+      description: |
+        You can get authenticator IDs by listing the authenticators.
+        To access this endpoint, you must set an Access Token at the Authorization header, with the following claims:
+        scope: remove:authenticators
+        audience: https://{yourDomain}/mfa/
+      parameters:
+        - name: ACCESS_TOKEN
+          in: header
+          required: true
+          schema:
+            type: string
+          description: The Access Token obtained during login.
+        - name: AUTHENTICATOR_ID
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the authenticator to delete.
+      responses:
+        "204":
+          description: Successful response. No content.
   /samlp/{client_id}:
     get:
       tags:
         - SAML
-      summary: Accepts a SAML request to initiate a login
-      description:
-        "Optionally, accepts a connection parameter to login with a specific\
-        \ provider. If no connection is specified, the Auth0 Login Page will be shown."
+      summary: Use this endpoint to accept a SAML request to initiate a login.
+      description: |
+        Optionally, you can include a connection parameter to log in with a specific provider. If no connection is specified, the Auth0 Login Page will be shown.
+        Optionally, SP-initiated login requests can include an organization parameter to authenticate users in the context of an organization. To learn more, see Organizations.
       parameters:
         - name: client_id
           in: path
           required: true
-          style: simple
-          explode: false
           schema:
             type: string
+          description: Client ID of your application.
+        - name: connection
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Connection to use during login.
+        - name: organization
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Organization ID, if authenticating in the context of an organization.
       responses:
         "200":
           description: Successful response
-          content:
-            application/json: {}
   /samlp/metadata/{client_id}:
     get:
       tags:
         - SAML
-      summary: Returns the SAML 2.0 metadata
+      summary: This endpoint returns the SAML 2.0 metadata.
       parameters:
         - name: client_id
           in: path
           required: true
-          style: simple
-          explode: false
           schema:
             type: string
+          description: The client_id of your application.
+      responses:
+        "200":
+          description: Successful response
+  /login/callback:
+    post:
+      tags:
+        - SSO
+      summary: This endpoint accepts an IdP-Initiated Sign On SAMLResponse from a SAML Identity Provider.
+      description: |
+        The connection corresponding to the identity provider is specified in the query string. The user will be redirected to the application that is specified in the SAML Provider IdP-Initiated Sign On section.
+      parameters:
+        - name: connection
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The name of an identity provider configured to your application.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                SAMLResponse:
+                  type: string
+              required:
+                - SAMLResponse
+      responses:
+        "200":
+          description: Successful response
+  /wsfed/{client_id}:
+    get:
+      tags:
+        - WS-Federation
+      summary: This endpoint accepts a WS-Federation request to initiate a login.
+      parameters:
+        - name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The client-id of your application.
+        - name: wtrealm
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Can be used in place of client-id.
+        - name: whr
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The name of the connection (used to skip the login page).
+        - name: wctx
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Your application's state.
+        - name: wreply
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The callback URL.
+      responses:
+        "200":
+          description: Successful response
+  /wsfed/FederationMetadata/2007-06/FederationMetadata.xml:
+    get:
+      tags:
+        - WS-Fed
+      summary: This endpoint returns the WS-Federation metadata.
+      responses:
+        "200":
+          description: Successful response
+  /oidc/register:
+    post:
+      tags:
+        - OIDC
+      summary: With a name and the necessary callback URL, you can dynamically register a client with Auth0. No token is needed for this request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_name:
+                  type: string
+                  description: The name of the Dynamic Client to be created. It is recommended to provide a value but if it is omitted, the default name "My App" will be used.
+                redirect_uris:
+                  type: array
+                  items:
+                    type: string
+                  description: An array of URLs that Auth0 will deem valid to call at the end of an Authentication flow.
+                token_endpoint_auth_method:
+                  type: string
+                  description: "Default value is client_secret_post. Use token_endpoint_auth_method: none in the request payload if creating a SPA."
       responses:
         "200":
           description: Successful response
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+                properties:
+                  client_name:
+                    type: string
+                  client_id:
+                    type: string
+                  client_secret:
+                    type: string
+                  redirect_uris:
+                    type: array
+                    items:
+                      type: string
+                  client_secret_expires_at:
+                    type: integer
   /oauth/device/code:
     post:
       summary: Get Device Code
@@ -558,43 +799,6 @@ paths:
                   interval:
                     type: integer
                     description: The interval (in seconds) at which the app should poll the token URL to request a token.
-  /wsfed/{client_id}:
-    get:
-      tags:
-        - WS-Fed
-      summary: Requests a logout using WS-Fed
-      parameters:
-        - name: wa
-          in: query
-          required: false
-          style: form
-          explode: true
-          schema:
-            type: string
-          example: wsignout1.0
-        - name: client_id
-          description: Your application's Client ID.
-          in: path
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json: {}
-  /wsfed/FederationMetadata/2007-06/FederationMetadata.xml:
-    get:
-      tags:
-        - WS-Fed
-      summary: Returns the WS-Federation Metadata
-      responses:
-        "200":
-          description: Successful response
-          content:
-            application/json: {}
   /oauth/access_token:
     post:
       deprecated: true
