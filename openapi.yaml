@@ -289,8 +289,21 @@ paths:
       tags:
         - Authenticate User
         - MFA
-      summary: Authenticates a user using a verification code or verifies multi-factor authentication (MFA) using a one-time password (OTP), out-of-band (OOB) challenge, or a recovery code
-      description: This endpoint supports multiple MFA methods. Depending on the method, different parameters are required in the request body.
+        - Authorization Code Flow
+        - Authorization Code Flow with PKCE
+        - Client Credentials Flow
+        - Resource Owner Password Flow
+        - Device Authorization Flow
+        - Refresh Token Flow
+        - Token Exchange for Native Social
+      summary: Authenticates a user using a verification code, verifies multi-factor authentication (MFA) using a one-time password (OTP), out-of-band (OOB) challenge, or a recovery code, or exchanges an Authorization Code for a Token
+      description: This endpoint supports multiple methods. Depending on the method, different parameters are required in the request body.
+      parameters:
+        - in: header
+          name: auth0-forwarded-for
+          schema:
+            type: string
+          description: End-user IP as a string value. Set this if you want brute-force protection to work in server-side scenarios. For more information on how and when to use this header, refer to Using resource owner password from server-side.
       requestBody:
         required: true
         content:
@@ -300,6 +313,12 @@ paths:
                 - $ref: "#/components/schemas/OTP"
                 - $ref: "#/components/schemas/OOB"
                 - $ref: "#/components/schemas/RecoveryCode"
+                - $ref: "#/components/schemas/AuthorizationCode"
+                - $ref: "#/components/schemas/AuthorizationCodePKCE"
+                - $ref: "#/components/schemas/ClientCredentials"
+                - $ref: "#/components/schemas/ResourceOwnerPassword"
+                - $ref: "#/components/schemas/RefreshToken"
+                - $ref: "#/components/schemas/NativeSocialTokenExchange"
           application/json:
             schema:
               oneOf:
@@ -314,12 +333,38 @@ paths:
                 properties:
                   access_token:
                     type: string
+                  refresh_token:
+                    type: string
+                  id_token:
+                    type: string
                   token_type:
                     type: string
                   expires_in:
                     type: integer
                   recovery_code:
                     type: string
+                  error:
+                    type: string
+                  error_description:
+                    type: string
+        "403":
+          description: User has yet to authorize device code or transaction failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  error_description:
+                    type: string
+        "429":
+          description: You are polling faster than the specified interval of 5 seconds
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
                   error:
                     type: string
                   error_description:
@@ -1153,3 +1198,177 @@ components:
         recovery_code:
           type: string
           description: Recovery code provided by the end-user.
+    AuthorizationCode:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - client_secret
+        - code
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. For Authorization Code, use authorization_code.
+          enum: [authorization_code]
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        client_secret:
+          type: string
+          description: Your application's Client Secret.
+        code:
+          type: string
+          description: The Authorization Code received from the initial /authorize call.
+        redirect_uri:
+          type: string
+          description: This is required only if it was set at the GET /authorize endpoint. The values must match.
+          format: uri
+    AuthorizationCodePKCE:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - code
+        - code_verifier
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. For Authorization Code (PKCE), use authorization_code.
+          enum: [authorization_code]
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        code:
+          type: string
+          description: The Authorization Code received from the initial /authorize call.
+        code_verifier:
+          type: string
+          description: Cryptographically random key that was used to generate the code_challenge passed to /authorize.
+        redirect_uri:
+          type: string
+          description: This is required only if it was set at the GET /authorize endpoint. The values must match.
+          format: uri
+    ClientCredentials:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - client_secret
+        - audience
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. For Client Credentials, use client_credentials.
+          enum: [client_credentials]
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        client_secret:
+          type: string
+          description: Your application's Client Secret.
+        audience:
+          type: string
+          description: The unique identifier of the target API you want to access.
+    ResourceOwnerPassword:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - username
+        - password
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. For Resource Owner Password, use password.
+          enum: [password]
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        client_secret:
+          type: string
+          description: Your application's Client Secret. Required when the Token Endpoint Authentication Method field at your Application Settings is Post or Basic.
+        audience:
+          type: string
+          description: The unique identifier of the target API you want to access.
+        username:
+          type: string
+          description: Resource Owner's identifier, such as a username or email address.
+        password:
+          type: string
+          description: Resource Owner's secret.
+        scope:
+          type: string
+          description: String value of the different scopes the application is asking for. Multiple scopes are separated with whitespace.
+        realm:
+          type: string
+          description: String value of the realm the user belongs. Set this if you want to add realm support at this grant. For more information on what realms are refer to Realm Support.
+    DeviceAuthorization:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - device_code
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. For Device Authorization, use urn:ietf:params:oauth:grant-type:device_code.
+          enum: [urn:ietf:params:oauth:grant-type:device_code]
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        device_code:
+          type: string
+          description: The device code previously returned from the /oauth/device/code endpoint.
+    RefreshToken:
+      type: object
+      required:
+        - grant_type
+        - client_id
+        - refresh_token
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. To refresh a token, use refresh_token.
+          enum: [refresh_token]
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        client_secret:
+          type: string
+          description: Your application's Client Secret. Required when the Token Endpoint Authentication Method field at your Application Settings is Post or Basic.
+        refresh_token:
+          type: string
+          description: The Refresh Token to use.
+        scope:
+          type: string
+          description: A space-delimited list of requested scope permissions. If not sent, the original scopes will be used; otherwise you can request a reduced set of scopes. Note that this must be URL encoded.
+    NativeSocialTokenExchange:
+      type: object
+      required:
+        - grant_type
+        - subject_token
+        - subject_token_type
+        - client_id
+      properties:
+        grant_type:
+          type: string
+          description: Denotes the flow you are using. For Token Exchange for Native Social, use urn:ietf:params:oauth:grant-type:token-exchange.
+          enum: [urn:ietf:params:oauth:grant-type:token-exchange]
+        subject_token:
+          type: string
+          description: Externally-issued identity artifact, representing the user.
+        subject_token_type:
+          type: string
+          description: "Identifier that indicates the type of subject_token. Currently supported native social values are: http://auth0.com/oauth/token-type/apple-authz-code."
+        client_id:
+          type: string
+          description: Your application's Client ID.
+        audience:
+          type: string
+          description: The unique identifier of the target API you want to access.
+        scope:
+          type: string
+          description: String value of the different scopes the application is requesting. Multiple scopes are separated with whitespace.
+        user_profile:
+          type: string
+          description: "Optional element used for native iOS interactions for which profile updates can occur. Expected parameter value will be JSON in the form of: { name: { firstName: 'John', lastName: 'Smith }}"
