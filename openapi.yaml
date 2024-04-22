@@ -15,6 +15,7 @@ servers:
 paths:
   /authorize:
     get:
+      operationId: authorize
       tags:
         - Social Provider Authentication
         - Database/AD/LDAP (Passive) Authentication
@@ -118,6 +119,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /v2/logout:
     get:
+      operationId: logout
       tags:
         - Logout
       summary: Logout a user
@@ -165,6 +167,7 @@ paths:
 
   /oidc/logout:
     get:
+      operationId: oidc_logout
       tags:
         - Logout
       summary: Logout a user
@@ -235,6 +238,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /samlp/{CLIENT_ID}/logout:
     post:
+      operationId: saml_logout
       tags:
         - Logout
       summary: Logout a user
@@ -276,6 +280,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /passwordless/start:
     post:
+      operationId: passwordless_start
       tags:
         - Passwordless
       summary: Start Passwordless flow
@@ -337,6 +342,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /passwordless/verify:
     post:
+      operationId: passwordless_verify
       deprecated: true
       tags:
         - Deprecated > Passwordless
@@ -390,6 +396,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /oauth/token:
     post:
+      operationId: oauth_token
       tags:
         - Authenticate User
         - MFA
@@ -489,6 +496,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /dbconnections/signup:
     post:
+      operationId: dbconnections_signup
       tags:
         - DbConnections
       summary: Signup with user's credentials
@@ -556,6 +564,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /dbconnections/change_password:
     post:
+      operationId: dbconnections_change_password
       tags:
         - DB Connections
       summary: Send a change password email
@@ -608,6 +617,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /userinfo:
     get:
+      operationId: userinfo
       tags:
         - User Profile
       summary: Returns a user's profile
@@ -694,6 +704,7 @@ paths:
 
   /mfa/challenge:
     post:
+      operationId: mfa_challenge
       tags:
         - MFA
       summary: Request a challenge for multi-factor authentication
@@ -749,6 +760,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /mfa/associate:
     post:
+      operationId: mfa_associate
       tags:
         - MFA
       summary: Associates or adds a new authenticator for multi-factor authentication (MFA).
@@ -821,6 +833,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /mfa/authenticators:
     get:
+      operationId: mfa_authenticators
       tags:
         - MFA
       summary: Returns a list of authenticators associated with your application.
@@ -878,6 +891,7 @@ paths:
 
   /mfa/authenticators/{AUTHENTICATOR_ID}:
     delete:
+      operationId: mfa_authenticators_delete
       tags:
         - MFA
       summary: Deletes an associated authenticator using its ID.
@@ -923,6 +937,7 @@ paths:
 
   /samlp/{client_id}:
     get:
+      operationId: samlp_login
       tags:
         - SAML
       summary: Use this endpoint to accept a SAML request to initiate a login.
@@ -972,6 +987,7 @@ paths:
 
   /samlp/metadata/{client_id}:
     get:
+      operationId: samlp_metadata
       tags:
         - SAML
       summary: This endpoint returns the SAML 2.0 metadata.
@@ -1006,6 +1022,7 @@ paths:
 
   /login/callback:
     post:
+      operationId: login_callback
       tags:
         - SSO
       summary: This endpoint accepts an IdP-Initiated Sign On SAMLResponse from a SAML Identity Provider.
@@ -1053,6 +1070,7 @@ paths:
 
   /wsfed/{client_id}:
     get:
+      operationId: wsfed_login
       tags:
         - WS-Federation
       summary: This endpoint accepts a WS-Federation request to initiate a login.
@@ -1111,6 +1129,7 @@ paths:
 
   /wsfed/FederationMetadata/2007-06/FederationMetadata.xml:
     get:
+      operationId: wsfed_metadata
       tags:
         - WS-Fed
       summary: This endpoint returns the WS-Federation metadata.
@@ -1138,6 +1157,7 @@ paths:
 
   /oidc/register:
     post:
+      operationId: oidc_register
       tags:
         - OIDC
       summary: With a name and the necessary callback URL, you can dynamically register a client with Auth0. No token is needed for this request.
@@ -1199,6 +1219,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /oauth/device/code:
     post:
+      operationId: oauth_device_code
       summary: Get Device Code
       tags:
         - Device Flow
@@ -1264,6 +1285,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /oauth/revoke:
     post:
+      operationId: oauth_revoke
       summary: Revoke Refresh Token
       description: Use this endpoint to invalidate a Refresh Token if it has been compromised. The behaviour of this endpoint depends on the state of the Refresh Token Revocation Deletes Grant toggle. If this toggle is enabled, then each revocation request invalidates not only the specific token, but all other tokens based on the same authorization grant. This means that all Refresh Tokens that have been issued for the same user, application, and audience will be revoked. If this toggle is disabled, then only the refresh token is revoked, while the grant is left intact.
       tags:
@@ -1316,6 +1338,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /oauth/access_token:
     post:
+      operationId: oauth_access_token
       deprecated: true
       tags:
         - Deprecated > Authenticate
@@ -1365,6 +1388,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /oauth/ro:
     post:
+      operationId: oauth_ro
       deprecated: true
       tags:
         - Deprecated > Passwordless
@@ -1418,6 +1442,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /tokeninfo:
     post:
+      operationId: tokeninfo
       deprecated: true
       tags:
         - Deprecated > Authenticate
@@ -1456,6 +1481,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /delegation:
     post:
+      operationId: delegation
       deprecated: true
       tags:
         - Deprecated > Delegated Authentication
@@ -1508,6 +1534,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /unlink:
     post:
+      operationId: unlink
       deprecated: true
       tags:
         - Deprecated > Link Accounts
@@ -1547,6 +1574,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
   /users/{user_id}/impersonate:
     post:
+      operationId: impersonate
       deprecated: true
       tags:
         - Deprecated > Impersonation
