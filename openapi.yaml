@@ -428,6 +428,7 @@ paths:
                 - $ref: "#/components/schemas/AuthorizationCodePKCE"
                 - $ref: "#/components/schemas/ClientCredentials"
                 - $ref: "#/components/schemas/ResourceOwnerPassword"
+                - $ref: "#/components/schemas/DeviceAuthorization"
                 - $ref: "#/components/schemas/RefreshToken"
                 - $ref: "#/components/schemas/NativeSocialTokenExchange"
           application/json:
