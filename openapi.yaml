@@ -17,14 +17,16 @@ paths:
     get:
       operationId: authorize
       tags:
-        - Social Provider Authentication
-        - Database/AD/LDAP (Passive) Authentication
-        - SAML/Windows Azure AD (Passive) Authentication
-        - Authorization Code Flow
-        - Authorization Code Grant (PKCE) Flow
-        - Implicit Flow
-      summary: Authenticate a user with a social provider, Database/AD/LDAP (Passive), SAML/Windows Azure AD (Passive), mobile app, or web app
-      description: Use this endpoint to authenticate a user with a social provider, for browser based (passive) authentication, passive authentication with a SAML Provider (or Windows Azure AD and the rest), mobile app using Authorization Code Grant (PKCE) Flow, or web app using Implicit Flow. It will return a 302 redirect to the provider specified in connection or to the Auth0 Login Page that will show the Login Widget where the user can log in with email and password.
+        - Authorize User
+      summary: Authenticate a user with a social provider, Database/AD/LDAP (Passive), SAML/Windows Azure AD (Passive), Authorization Code Flow, Authorization Code Grant (PKCE) Flow, or Implicit Flow
+      description: |
+        Use this endpoint to authenticate a user. The following flows are supported:
+          - Social Provider Authentication
+          - Database/AD/LDAP (Passive) Authentication
+          - SAML/Windows Azure AD (Passive) Authentication
+          - Authorization Code Flow
+          - Authorization Code Grant (PKCE) Flow
+          - Implicit Flow
       parameters:
         - name: audience
           in: query
@@ -398,17 +400,21 @@ paths:
     post:
       operationId: oauth_token
       tags:
-        - Authenticate User
-        - MFA
-        - Authorization Code Flow
-        - Authorization Code Flow with PKCE
-        - Client Credentials Flow
-        - Resource Owner Password Flow
-        - Device Authorization Flow
-        - Refresh Token Flow
-        - Token Exchange for Native Social
+        - OAuth Token
       summary: Authenticates a user using a verification code, verifies multi-factor authentication (MFA) using a one-time password (OTP), out-of-band (OOB) challenge, or a recovery code, or exchanges an Authorization Code for a Token
-      description: This endpoint supports multiple methods. Depending on the method, different parameters are required in the request body.
+      description: |
+        This endpoint supports multiple methods. Depending on the method, different parameters are required in the request body. The supported methods are:
+          - Authenticate User with verification code
+          - OTP
+          - OOB
+          - Recovery Code
+          - Authorization Code
+          - Authorization Code PKCE
+          - Client Credentials
+          - Resource Owner Password
+          - Device Authorization
+          - Refresh Token
+          - Native Social Token Exchange
       parameters:
         - in: header
           name: auth0-forwarded-for
@@ -434,7 +440,7 @@ paths:
           application/json:
             schema:
               oneOf:
-                - $ref: "#/components/schemas/AuthenticateUser"
+                - $ref: "#/components/schemas/AuthenticateUserWithVerificationCode"
       responses:
         "200":
           description: Successful response.
@@ -1637,7 +1643,7 @@ paths:
           $ref: "#/components/responses/ServiceUnavailable"
 components:
   schemas:
-    AuthenticateUser:
+    AuthenticateUserWithVerificationCode:
       description: Authenticate a user using a verification code.
       type: object
       properties:
