@@ -505,7 +505,7 @@ paths:
     post:
       operationId: dbconnections_signup
       tags:
-        - DbConnections
+        - Db Connections
       summary: Signup with user's credentials
       description: Given a user's credentials, and a connection, this endpoint will create a new user using active authentication. This endpoint only works for database connections.
       requestBody:
@@ -573,7 +573,7 @@ paths:
     post:
       operationId: dbconnections_change_password
       tags:
-        - DB Connections
+        - Db Connections
       summary: Send a change password email
       description: |
         Send a change password email to the user's provided email address and connection. Optionally, you may provide an Organization ID to support Organization-specific variables in customized email templates and to include the organization_id and organization_name parameters in the Redirect To URL. Note: This endpoint only works for database connections.
